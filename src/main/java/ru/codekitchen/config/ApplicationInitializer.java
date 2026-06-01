@@ -1,4 +1,4 @@
-package ru.codekitchen;
+package ru.codekitchen.config;
 
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
@@ -7,7 +7,6 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
-import java.io.ObjectInputFilter;
 
 
 public class ApplicationInitializer implements WebApplicationInitializer {
