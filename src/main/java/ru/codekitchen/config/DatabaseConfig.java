@@ -1,17 +1,23 @@
 package ru.codekitchen.config;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
+@EnableTransactionManagement
 @PropertySource("classpath:/application.properties")
 public class DatabaseConfig {
 
@@ -27,6 +33,18 @@ public class DatabaseConfig {
     @Value("${db.password}")
     private String databasePassword;
 
+    @Value("${db.connection-pool.initial-size}")
+    private int databaseConnectionPoolInitialSize;
+
+    @Value("${db.connection-pool.min-idle}")
+    private int databaseConnectionPoolMinIdle;
+
+    @Value("${db.connection-pool.max-idle}")
+    private int databaseConnectionPoolMaxIdle;
+
+    @Value("${db.connection-pool.max-total}")
+    private int databaseConnectionPoolMaxTotal;
+
     @Value("${hibernate.dialect}")
     private String hibernateDialect;
 
@@ -37,17 +55,18 @@ public class DatabaseConfig {
     private String hibernateHbm2DbAuto;
 
 
-
-
-
-
     @Bean
     public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName(databaseDriver);
         dataSource.setUrl(databaseUrl);
         dataSource.setUsername(databaseUser);
         dataSource.setPassword(databasePassword);
+
+        dataSource.setInitialSize(databaseConnectionPoolInitialSize);
+        dataSource.setMinIdle(databaseConnectionPoolMinIdle);
+        dataSource.setMaxIdle(databaseConnectionPoolMaxIdle);
+        dataSource.setMaxTotal(databaseConnectionPoolMaxTotal);
         return dataSource;
     }
 
@@ -59,6 +78,13 @@ public class DatabaseConfig {
         entityManagerFactory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
         entityManagerFactory.setJpaProperties(getHibernateProperties());
         return entityManagerFactory;
+    }
+
+    @Bean
+    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+        JpaTransactionManager manager = new JpaTransactionManager();
+        manager.setEntityManagerFactory(entityManagerFactory);
+        return manager;
     }
 
     private Properties getHibernateProperties() {
